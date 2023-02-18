@@ -1,0 +1,42 @@
+[{
+  "var1": 1,
+  "var2": 2,
+  "init": [
+    {"cmd": "#setup"}
+  ],
+  "setup": [
+    {"cmd": "update", "id": "var1", "value": 3.5},
+    {"cmd": "print", "value": "#var1"},
+    {"cmd": "#sum", "id": "var1", "value1": "#var1", "value2": "#var2"},
+    {"cmd": "print", "value": "#var1"},
+    {"cmd": "create", "id": "var3", "value": 5},
+    {"cmd": "delete", "id": "var1"},
+    {"cmd": "#printAll"}
+  ],
+  "sum": [
+    {"cmd": "add", "id": "$id", "operand1": "$value1", "operand2": "$value2"}
+  ],
+  "printAll":
+  [
+    {"cmd": "print", "value": "#var1"},
+    {"cmd": "print", "value": "#var2"},
+    {"cmd": "print", "value": "#var3"}
+  ]
+},
+  {
+    "var1": 420,
+    "var2": 69,
+    "init": [
+      {"cmd": "divide", "id": "var3", "operand1": "#var1", "operand2": "#var2"},
+      {"cmd": "print", "value": "#var3" }
+    ]
+  },
+  {
+    "init": [
+      {"cmd": "print", "value": "#var1"},
+      {"cmd": "print", "value": "#var2"},
+      {"cmd": "print", "value": "#var3"},
+      {"cmd": "#sum", "id": "var1", "value1": "#var1", "value2": "#var2"},
+      {"cmd": "print", "value": "#var1"}
+    ]
+  }]
