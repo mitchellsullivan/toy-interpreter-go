@@ -7,10 +7,18 @@ import (
 	"os"
 )
 
-var symbols = make(map[string]interface{})
+type FslInterpreter struct {
+	symbols map[string]interface{}
+}
 
-func execFunction(functionName string, params map[string]interface{}) {
-	currFunc := symbols[functionName]
+func NewFslInterpreter() *FslInterpreter {
+	return &FslInterpreter{
+		symbols: make(map[string]interface{}),
+	}
+}
+
+func (i *FslInterpreter) execFunction(functionName string, params map[string]interface{}) {
+	currFunc := i.symbols[functionName]
 
 	for _, currLine := range currFunc.([]interface{}) {
 		evald := make(map[string]interface{})
@@ -20,7 +28,7 @@ func execFunction(functionName string, params map[string]interface{}) {
 				continue
 			} else if valStr, ok := val.(string); ok && valStr[0] == '#' {
 				varName := valStr[1:]
-				evald[k] = symbols[varName]
+				evald[k] = i.symbols[varName]
 			} else if valStr, ok := val.(string); ok && valStr[0] == '$' {
 				paramName := valStr[1:]
 				evald[k] = params[paramName]
@@ -33,33 +41,33 @@ func execFunction(functionName string, params map[string]interface{}) {
 		case "print":
 			fmt.Println(evald["value"])
 		case "create":
-			symbols[evald["id"].(string)] = evald["value"]
+			i.symbols[evald["id"].(string)] = evald["value"]
 		case "update":
-			symbols[evald["id"].(string)] = evald["value"]
+			i.symbols[evald["id"].(string)] = evald["value"]
 		case "delete":
-			delete(symbols, evald["id"].(string))
+			delete(i.symbols, evald["id"].(string))
 		case "add":
-			symbols[evald["id"].(string)] = evald["operand1"].(float64) + evald["operand2"].(float64)
+			i.symbols[evald["id"].(string)] = evald["operand1"].(float64) + evald["operand2"].(float64)
 		case "divide":
 			operand2 := evald["operand2"].(float64)
 			if operand2 == 0 {
 				panic("cannot divide by zero")
 			}
-			symbols[evald["id"].(string)] = evald["operand1"].(float64) / operand2
+			i.symbols[evald["id"].(string)] = evald["operand1"].(float64) / operand2
 		default:
 			if cmdStr, ok := currLine.(map[string]interface{})["cmd"].(string); ok && cmdStr[0] == '#' {
 				functionName := cmdStr[1:]
-				execFunction(functionName, evald)
+				i.execFunction(functionName, evald)
 			}
 		}
 	}
 }
 
-func runScript(script map[string]interface{}) {
+func (i *FslInterpreter) runScript(script map[string]interface{}) {
 	for k, v := range script {
-		symbols[k] = v
+		i.symbols[k] = v
 	}
-	execFunction("init", nil)
+	i.execFunction("init", nil)
 }
 
 func main() {
@@ -83,14 +91,16 @@ func main() {
 		return
 	}
 
+	interpreter := NewFslInterpreter()
+
 	switch parsed := parsed.(type) {
 	case []interface{}:
 		for _, currScript := range parsed {
-			runScript(currScript.(map[string]interface{}))
+			interpreter.runScript(currScript.(map[string]interface{}))
 			fmt.Println()
 		}
 	case map[string]interface{}:
-		runScript(parsed)
+		interpreter.runScript(parsed)
 	default:
 		fmt.Println("JSON is not an object or array of objects")
 		return
