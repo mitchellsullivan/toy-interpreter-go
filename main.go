@@ -20,9 +20,9 @@ func NewFslInterpreter() *FslInterpreter {
 }
 
 func (i *FslInterpreter) execFunction(functionName string, params map[string]interface{}) {
-	currFunc := i.funcs[functionName]
+	currFunc := (i.funcs[functionName]).([]interface{})
 
-	for _, currCommand := range currFunc.([]interface{}) {
+	for _, currCommand := range currFunc {
 		resolved := make(map[string]interface{})
 
 		for k, val := range currCommand.(map[string]interface{}) {
@@ -39,25 +39,32 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 			}
 		}
 
-		switch currCommand.(map[string]interface{})["cmd"] {
+		cmdStr := currCommand.(map[string]interface{})["cmd"].(string)
+
+		switch cmdStr {
 		case "print":
 			fmt.Println(resolved["value"])
 		case "create":
-			i.vars[resolved["id"].(string)] = resolved["value"]
+			fallthrough
 		case "update":
-			i.vars[resolved["id"].(string)] = resolved["value"]
+			id := resolved["id"].(string)
+			i.vars[id] = resolved["value"]
 		case "delete":
-			delete(i.vars, resolved["id"].(string))
+			id := resolved["id"].(string)
+			delete(i.vars, id)
 		case "add":
-			i.vars[resolved["id"].(string)] = resolved["operand1"].(float64) + resolved["operand2"].(float64)
+			id := resolved["id"].(string)
+			operand1, operand2 := resolved["operand1"].(float64), resolved["operand2"].(float64)
+			i.vars[id] = operand1 + operand2
 		case "divide":
-			operand2 := resolved["operand2"].(float64)
+			id := resolved["id"].(string)
+			operand1, operand2 := resolved["operand1"].(float64), resolved["operand2"].(float64)
 			if operand2 == 0 {
 				panic("cannot divide by zero")
 			}
-			i.vars[resolved["id"].(string)] = resolved["operand1"].(float64) / operand2
+			i.vars[id] = operand1 / operand2
 		default:
-			if cmdStr, ok := currCommand.(map[string]interface{})["cmd"].(string); ok && cmdStr[0] == '#' {
+			if cmdStr[0] == '#' {
 				functionName := cmdStr[1:]
 				i.execFunction(functionName, resolved)
 			}
