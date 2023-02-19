@@ -8,56 +8,58 @@ import (
 )
 
 type FslInterpreter struct {
-	symbols map[string]interface{}
+	vars  map[string]interface{}
+	funcs map[string]interface{}
 }
 
 func NewFslInterpreter() *FslInterpreter {
 	return &FslInterpreter{
-		symbols: make(map[string]interface{}),
+		vars:  make(map[string]interface{}),
+		funcs: make(map[string]interface{}),
 	}
 }
 
 func (i *FslInterpreter) execFunction(functionName string, params map[string]interface{}) {
-	currFunc := i.symbols[functionName]
+	currFunc := i.funcs[functionName]
 
 	for _, currLine := range currFunc.([]interface{}) {
-		evald := make(map[string]interface{})
+		resolved := make(map[string]interface{})
 
 		for k, val := range currLine.(map[string]interface{}) {
 			if k == "cmd" {
 				continue
 			} else if valStr, ok := val.(string); ok && valStr[0] == '#' {
 				varName := valStr[1:]
-				evald[k] = i.symbols[varName]
+				resolved[k] = i.vars[varName]
 			} else if valStr, ok := val.(string); ok && valStr[0] == '$' {
 				paramName := valStr[1:]
-				evald[k] = params[paramName]
+				resolved[k] = params[paramName]
 			} else {
-				evald[k] = val
+				resolved[k] = val
 			}
 		}
 
 		switch currLine.(map[string]interface{})["cmd"] {
 		case "print":
-			fmt.Println(evald["value"])
+			fmt.Println(resolved["value"])
 		case "create":
-			i.symbols[evald["id"].(string)] = evald["value"]
+			i.vars[resolved["id"].(string)] = resolved["value"]
 		case "update":
-			i.symbols[evald["id"].(string)] = evald["value"]
+			i.vars[resolved["id"].(string)] = resolved["value"]
 		case "delete":
-			delete(i.symbols, evald["id"].(string))
+			delete(i.vars, resolved["id"].(string))
 		case "add":
-			i.symbols[evald["id"].(string)] = evald["operand1"].(float64) + evald["operand2"].(float64)
+			i.vars[resolved["id"].(string)] = resolved["operand1"].(float64) + resolved["operand2"].(float64)
 		case "divide":
-			operand2 := evald["operand2"].(float64)
+			operand2 := resolved["operand2"].(float64)
 			if operand2 == 0 {
 				panic("cannot divide by zero")
 			}
-			i.symbols[evald["id"].(string)] = evald["operand1"].(float64) / operand2
+			i.vars[resolved["id"].(string)] = resolved["operand1"].(float64) / operand2
 		default:
 			if cmdStr, ok := currLine.(map[string]interface{})["cmd"].(string); ok && cmdStr[0] == '#' {
 				functionName := cmdStr[1:]
-				i.execFunction(functionName, evald)
+				i.execFunction(functionName, resolved)
 			}
 		}
 	}
@@ -65,7 +67,12 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 
 func (i *FslInterpreter) runScript(script map[string]interface{}) {
 	for k, v := range script {
-		i.symbols[k] = v
+		switch v.(type) {
+		case []interface{}:
+			i.funcs[k] = v
+		default:
+			i.vars[k] = v
+		}
 	}
 	i.execFunction("init", nil)
 }
