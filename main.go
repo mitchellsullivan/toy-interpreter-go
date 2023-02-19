@@ -22,10 +22,10 @@ func NewFslInterpreter() *FslInterpreter {
 func (i *FslInterpreter) execFunction(functionName string, params map[string]interface{}) {
 	currFunc := i.funcs[functionName]
 
-	for _, currLine := range currFunc.([]interface{}) {
+	for _, currCommand := range currFunc.([]interface{}) {
 		resolved := make(map[string]interface{})
 
-		for k, val := range currLine.(map[string]interface{}) {
+		for k, val := range currCommand.(map[string]interface{}) {
 			if k == "cmd" {
 				continue
 			} else if valStr, ok := val.(string); ok && valStr[0] == '#' {
@@ -39,7 +39,7 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 			}
 		}
 
-		switch currLine.(map[string]interface{})["cmd"] {
+		switch currCommand.(map[string]interface{})["cmd"] {
 		case "print":
 			fmt.Println(resolved["value"])
 		case "create":
@@ -57,7 +57,7 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 			}
 			i.vars[resolved["id"].(string)] = resolved["operand1"].(float64) / operand2
 		default:
-			if cmdStr, ok := currLine.(map[string]interface{})["cmd"].(string); ok && cmdStr[0] == '#' {
+			if cmdStr, ok := currCommand.(map[string]interface{})["cmd"].(string); ok && cmdStr[0] == '#' {
 				functionName := cmdStr[1:]
 				i.execFunction(functionName, resolved)
 			}
