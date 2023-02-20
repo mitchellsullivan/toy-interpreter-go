@@ -23,9 +23,10 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 	currFunc := (i.funcs[functionName]).([]interface{})
 
 	for _, currCommand := range currFunc {
+		currCommandMap, _ := currCommand.(map[string]interface{})
 		resolved := make(map[string]interface{})
 
-		for k, val := range currCommand.(map[string]interface{}) {
+		for k, val := range currCommandMap {
 			if k == "cmd" {
 				continue
 			} else if valStr, ok := val.(string); ok && valStr[0] == '#' {
@@ -39,7 +40,7 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 			}
 		}
 
-		cmdStr := currCommand.(map[string]interface{})["cmd"].(string)
+		cmdStr := currCommandMap["cmd"].(string)
 
 		switch cmdStr {
 		case "print":
