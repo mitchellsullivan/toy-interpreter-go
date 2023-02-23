@@ -67,6 +67,11 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 			op1, _ := resolved["operand1"].(float64)
 			op2, _ := resolved["operand2"].(float64)
 			i.vars[id] = op1 - op2
+		case "multiply":
+			id, _ := resolved["id"].(string)
+			op1, _ := resolved["operand1"].(float64)
+			op2, _ := resolved["operand2"].(float64)
+			i.vars[id] = op1 * op2
 		case "divide":
 			id, _ := resolved["id"].(string)
 			op1, _ := resolved["operand1"].(float64)
@@ -75,11 +80,6 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 				panic("cannot divide by zero")
 			}
 			i.vars[id] = op1 / op2
-		case "multiply":
-			id, _ := resolved["id"].(string)
-			op1, _ := resolved["operand1"].(float64)
-			op2, _ := resolved["operand2"].(float64)
-			i.vars[id] = op1 * op2
 		default:
 			if cmdStr[0] == '#' {
 				functionName := cmdStr[1:]
