@@ -108,7 +108,7 @@ func main() {
 
 	err = json.Unmarshal(script, &parsed)
 	if err != nil {
-		fmt.Println("Could not unmarshall JSON")
+		fmt.Println("Could not unmarshal JSON")
 		return
 	}
 
