@@ -20,7 +20,7 @@ func NewFslInterpreter() *FslInterpreter {
 }
 
 func (i *FslInterpreter) execFunction(functionName string, params map[string]interface{}) {
-	currFunc := (i.funcs[functionName]).([]interface{})
+	currFunc, _ := (i.funcs[functionName]).([]interface{})
 
 	for _, currCommand := range currFunc {
 		currCommandMap, _ := currCommand.(map[string]interface{})
@@ -29,10 +29,14 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 		for k, val := range currCommandMap {
 			if k == "cmd" {
 				continue
-			} else if valStr, ok := val.(string); ok && valStr[0] == '#' {
+			}
+
+			valStr, ok := val.(string)
+
+			if ok && valStr[0] == '#' {
 				varName := valStr[1:]
 				resolved[k] = i.vars[varName]
-			} else if valStr, ok := val.(string); ok && valStr[0] == '$' {
+			} else if ok && valStr[0] == '$' && params != nil {
 				paramName := valStr[1:]
 				resolved[k] = params[paramName]
 			} else {
@@ -48,22 +52,24 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 		case "create":
 			fallthrough
 		case "update":
-			id := resolved["id"].(string)
+			id, _ := resolved["id"].(string)
 			i.vars[id] = resolved["value"]
 		case "delete":
-			id := resolved["id"].(string)
+			id, _ := resolved["id"].(string)
 			delete(i.vars, id)
 		case "add":
-			id := resolved["id"].(string)
-			operand1, operand2 := resolved["operand1"].(float64), resolved["operand2"].(float64)
-			i.vars[id] = operand1 + operand2
+			id, _ := resolved["id"].(string)
+			op1, _ := resolved["operand1"].(float64)
+			op2, _ := resolved["operand2"].(float64)
+			i.vars[id] = op1 + op2
 		case "divide":
-			id := resolved["id"].(string)
-			operand1, operand2 := resolved["operand1"].(float64), resolved["operand2"].(float64)
-			if operand2 == 0 {
+			id, _ := resolved["id"].(string)
+			op1, _ := resolved["operand1"].(float64)
+			op2, _ := resolved["operand2"].(float64)
+			if op2 == 0 {
 				panic("cannot divide by zero")
 			}
-			i.vars[id] = operand1 / operand2
+			i.vars[id] = op1 / op2
 		default:
 			if cmdStr[0] == '#' {
 				functionName := cmdStr[1:]
