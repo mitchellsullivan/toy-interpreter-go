@@ -62,6 +62,11 @@ func (i *FslInterpreter) execFunction(functionName string, params map[string]int
 			op1, _ := resolved["operand1"].(float64)
 			op2, _ := resolved["operand2"].(float64)
 			i.vars[id] = op1 + op2
+		case "subtract":
+			id, _ := resolved["id"].(string)
+			op1, _ := resolved["operand1"].(float64)
+			op2, _ := resolved["operand2"].(float64)
+			i.vars[id] = op1 - op2
 		case "divide":
 			id, _ := resolved["id"].(string)
 			op1, _ := resolved["operand1"].(float64)
